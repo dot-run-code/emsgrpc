@@ -1,0 +1,53 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: multi-pod
+spec:
+
+  restartPolicy: Never
+
+  volumes:
+  - name: shared-data
+    emptyDir: {}
+  - name: devfuse
+    hostPath:
+      path: /dev/fuse
+
+  containers:
+
+  - name: goofy
+    image: cloudposse/goofys:latest
+    securityContext:
+      privileged: true
+        # capabilities:
+        #   add:
+        #     - SYS_ADMIN
+        #     - MKNOD
+    env:
+    - name: AWS_ACCESS_KEY_ID
+      value: "AKIAVVKPEMC7IUGM67WC"
+    - name: AWS_SECRET_ACCESS_KEY
+      value: "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"
+    - name: BUCKET
+      value: "ilum-upload"
+
+    volumeMounts:
+        - name: devfuse
+          mountPath: /dev/fuse
+        - name: shared-data
+          mountPath: /share
+
+  - name: emsgrpc
+    image: avishekwish/emsgrpc:1.0.0
+    volumeMounts:
+    - name: shared-data
+      mountPath: /upload
+    env:
+    - name: KAFKABROKERS
+      value: "b-1.msk-test.467i3h.c3.kafka.us-west-2.amazonaws.com:9092,b-2.msk-test.467i3h.c3.kafka.us-west-2.amazonaws.com:9092,b-3.msk-test.467i3h.c3.kafka.us-west-2.amazonaws.com:9092"
+    - name: PORT
+      value: "5003"
+    - name: UPLOADPATH
+      value:  "/upload"
+  
+ 

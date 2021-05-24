@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package proto;
+option go_package="github.com/dot-run-code/emsgrpc/proto";
+
+
+message PublishRequest {
+    string content = 1;
+}
+
+message PublishResponse {
+    string Message = 1;
+    PublishStatusCode Code = 2;
+}
+enum PublishStatusCode {
+    Unknown = 0;
+    Ok = 1;
+    Failed = 2;
+}
+message PublishStreamRequest {
+    bytes Content = 1;
+}
+message AcknowledgementResponse {
+    string Message = 1;
+    PublishStatusCode Code = 2;
+}
+service Topic {
+  rpc Publish(PublishRequest) returns (PublishResponse) {};
+  rpc PublishStream(stream PublishStreamRequest) returns(AcknowledgementResponse){}
+  rpc StreamFile(stream PublishStreamRequest) returns(AcknowledgementResponse){}
+}

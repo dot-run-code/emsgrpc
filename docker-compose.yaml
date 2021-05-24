@@ -1,0 +1,24 @@
+version: "3.9"
+services:
+  goofy:
+    image: cloudposse/goofys:latest
+    environment:
+      AWS_ACCESS_KEY_ID: "AKIAVVKPEMC7IUGM67WC"
+      AWS_SECRET_ACCESS_KEY: "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"
+      BUCKET: "ilum-upload"
+    cap_add:
+      - MKNOD
+      - SYS_ADMIN
+    security_opt:
+      - apparmor:unconfined
+    devices:
+      - /dev/fuse 
+  app:
+    build: .
+    image: avishekwish/emsgrpc:1.0.0
+    ports:
+      - "8000:5003"
+    environment:
+      KAFKABROKERS: "b-1.msk-test.467i3h.c3.kafka.us-west-2.amazonaws.com:9092,b-2.msk-test.467i3h.c3.kafka.us-west-2.amazonaws.com:9092,b-3.msk-test.467i3h.c3.kafka.us-west-2.amazonaws.com:9092"
+      PORT: "5003"
+      UPLOADPATH: "/mnt/s3"

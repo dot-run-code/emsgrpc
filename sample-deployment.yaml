@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: emsgrpc
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: emsgrpc
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: emsgrpc
+    spec:
+      containers:
+        - name: emsgrpc-server
+          image: avishekwish/emsgrpc:1.0.0
+          resources:
+            requests:
+              memory: "500Mi"
+              cpu: "500m"
+            limits:
+              memory: "1G"
+              cpu: "1000m"
+          volumeMounts:
+          - name: persistent-storage
+            mountPath: /upload
+          ports:
+            - name: https
+              containerPort: 5003
+          env:
+          - name: KAFKABROKERS
+            value: "b-1.msk-test.467i3h.c3.kafka.us-west-2.amazonaws.com:9092,b-2.msk-test.467i3h.c3.kafka.us-west-2.amazonaws.com:9092,b-3.msk-test.467i3h.c3.kafka.us-west-2.amazonaws.com:9092"
+          - name: PORT
+            value: "5003"
+          - name: UPLOADPATH
+            value:  "/upload"
+       
+        - name: s3-sync
+          image: silintl/sync-with-s3
+          volumeMounts:
+          - name: persistent-storage
+            mountPath: /sync
+          env:
+          - name: ACCESS_KEY
+            value: "AKIAVVKPEMC7IUGM67WC"
+          - name: SECRET_KEY
+            value: "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"
+          - name: BUCKET_LOCATION
+            value:  "us-east-1"
+          - name: DESTINATION_PATH
+            value:  "s3://ilmn-deso-dev-upa-dms/data"
+          - name: SOURCE_PATH
+            value:  "/sync"
+          - name: CRON_SCHEDULE
+            value:  "*/1 * * * *"
+          
+
+      volumes:
+      - name: persistent-storage
+        awsElasticBlockStore:
+          volumeID: "vol-030d244306fcb4386"
+          fsType: ext4
